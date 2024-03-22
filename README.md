@@ -7,7 +7,7 @@ Welcome to the "vehicle-model" repository. This repository includes implementati
 The repository is organized into a primary `scripts` folder, which contains three key subdirectories:
 
 - `data/`: Contains data collected from practice runs by a full-sized Indy racecar, as well as racetrack reference lines for simulation purposes.
-- `tire_model/`: Includes the implementation of the Pacejka tire model (focused on lateral dynamics only). For a complete model, please refer to [Pacejka Tire Model by BrianN92](https://github.com/BrianN92/Pacejka-tire-model).
+- `tire_model/`: Includes the implementation of the Pacejka tire model (focused on lateral dynamics only). For a complete model, please refer to [Pacejka Tire Model](https://github.com/BrianN92/Pacejka-tire-model).
 - `veh_models/`: Consists of a dynamic single-track model and a kinematic single-track model. Additionally, a validation script `dynamic_validation.py` is provided to visualize the correlation between model predictions and ground truth measurements.
 
 ## Usage
