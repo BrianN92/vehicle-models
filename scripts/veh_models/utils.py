@@ -15,7 +15,7 @@ def load_data(file_path, idx, models):
         data     = np.loadtxt(file_path, delimiter = ',',comments = '#',max_rows=idx)
     wheel_v  = data[:,10:14] * 0.277778		   # wheel speed at each time step (should be a list or array)
     states   = data[:,1:9]
-    inputs   = data[:,8:10]
+    inputs   = data[:,8:10]                    # ax(m/s^2),deltadelta(rad/s)
     # gpk_inputs  = np.zeros(data[:,8:11].shape)
     ekin_inputs = np.zeros(data[:,7:11].shape)
     roll   = data[:,14] #* -1	

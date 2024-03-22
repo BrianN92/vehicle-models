@@ -142,7 +142,7 @@ class Dynamic_ST:
 		vy    = x[3]
 		𝛿     = x[5] 
 		ω     = x[6] 
-
+		wheel_v += 1e-12 
 		ACCELERATION = True if acc > 0 else False
 		# Longitudinal slip ratio is defined differently during acceleration and braking
 		if ACCELERATION:

@@ -20,6 +20,7 @@ class Vehicle:
         self.params = params
         self.true_states = None
         self.pred_states = None
+        self.inputs      = None
         self.ekin_inputs = None
         self.roll_data   = None
         self.wheel_data  = None
@@ -28,10 +29,8 @@ class Vehicle:
     def gen_data(self, path, dataset, models):
         data_limit = -1
         times, states, self.inputs, self.ekin_inputs = load_data(path+'{}.csv'.format(dataset), idx = data_limit, models=models)
-        self.true_states = np.zeros(states[:, :6].shape)
         # ground truth vehicle states
-        self.true_states[:,:5] = states[:, :5]  # x(m),y(m),vx(m/s),vy(m/s),psi(rad)
-        self.true_states[:, 5] = states[:, 6]   # omega(rad/s)
+        self.true_states = states[:, :7]  # x(m),y(m),vx(m/s),vy(m/s),psi(rad),delta(rad),omega(rad/s
         # model prediction vehicle states
         self.pred_states = np.zeros(self.true_states.shape)
         self.pred_states[0, :] = self.true_states[0, :]
@@ -45,7 +44,7 @@ class Simulation:
         self.N_SAMPLES = len(vehicle.inputs)
         self.SAMPLING_TIME = 0.04
         self.states = vehicle.states
-        self.inputs = vehicle.ekin_inputs
+        self.inputs = vehicle.inputs
         self.true_states = vehicle.true_states
         self.states_pred = vehicle.pred_states
         self.wheel_data = vehicle.wheel_data
@@ -155,13 +154,13 @@ class Plotting:
         self.y = simulation.states[self.id:, 1]
         self.vx = self.vx[self.id:]
         self.steering_angle = self.steering_angle[self.id:]
-        self.x_ekin = simulation.states_pred[self.id:, 0]
-        self.y_ekin = simulation.states_pred[self.id:, 1]
+        self.x_pred = simulation.states_pred[self.id:, 0]
+        self.y_pred = simulation.states_pred[self.id:, 1]
         self.angles = simulation.states[self.id:, 4]
         if model == 'kinematic':
-            self.angles_ekin = simulation.states_pred[self.id:, 2]
+            self.angles_pred = simulation.states_pred[self.id:, 2]
         else:
-            self.angles_ekin = simulation.states_pred[self.id:, 4]
+            self.angles_pred = simulation.states_pred[self.id:, 4]
 
         # Initialize the figure and axis
         self.fig, self.ax = plt.subplots(figsize=(12,8))
@@ -188,16 +187,16 @@ class Plotting:
         # Initialize arrow (vehicle)
         self.length = 0.5
         arrow = plt.Arrow(self.x[0], self.y[0], self.length * np.cos(self.angles[0]), self.length * np.sin(self.angles[0]), width=0.1, color='green', label='True position')
-        arrow_ekin = plt.Arrow(self.x_ekin[0], self.y_ekin[0], self.length * np.cos(self.angles_ekin[0]), self.length * np.sin(self.angles_ekin[0]), width=0.1, color='red', label='Ekin position')
+        arrow_pred = plt.Arrow(self.x_pred[0], self.y_pred[0], self.length * np.cos(self.angles_pred[0]), self.length * np.sin(self.angles_pred[0]), width=0.1, color='red', label='Ekin position')
         self.ax.add_patch(arrow)
-        self.ax.add_patch(arrow_ekin)
+        self.ax.add_patch(arrow_pred)
         self.ax.legend()
 
         # Initialize car patches
         self.true_patches = self.draw_car(self.x[0], self.y[0], self.angles[0], carID='true')
-        self.ekin_patches = self.draw_car(self.x[0], self.y[0], self.angles[0], carID='ekin')
-        for true_patch, ekin_patch in zip(self.true_patches,self.ekin_patches):
-            self.ax.add_patch(ekin_patch)
+        self.pred_patches = self.draw_car(self.x[0], self.y[0], self.angles[0], carID='pred')
+        for true_patch, pred_patch in zip(self.true_patches,self.pred_patches):
+            self.ax.add_patch(pred_patch)
             self.ax.add_patch(true_patch)
             
         self.last_time = None
@@ -258,7 +257,7 @@ class Plotting:
             patches.append(Polygon(body.T, closed=True, facecolor='green', edgecolor='black'))
             patches.append(Polygon(front_wing.T, closed=True, facecolor='orange', edgecolor='black'))
             patches.append(Polygon(rear_wing.T, closed=True, facecolor='orange', edgecolor='black'))
-        elif carID == 'ekin':
+        elif carID == 'pred':
             patches.append(Polygon(body.T, closed=True, facecolor='red', edgecolor='black'))
             patches.append(Polygon(front_wing.T, closed=True, facecolor='blue', edgecolor='black'))
             patches.append(Polygon(rear_wing.T, closed=True, facecolor='blue', edgecolor='black'))
@@ -301,18 +300,18 @@ class Plotting:
         dy = self.length * np.sin(self.angles[frame])
         arrow = plt.Arrow(self.x[frame], self.y[frame], dx, dy, width=0.1, color='green')
         self.ax.add_patch(arrow)
-        # Path of ekin prediction
-        dx_ekin = self.length * np.cos(self.angles_ekin[frame])
-        dy_ekin = self.length * np.sin(self.angles_ekin[frame])
-        arrow_ekin = plt.Arrow(self.x_ekin[frame], self.y_ekin[frame], dx_ekin, dy_ekin, width=0.1, color='red')
-        self.ax.add_patch(arrow_ekin)
+        # Path of model prediction
+        dx_pred = self.length * np.cos(self.angles_pred[frame])
+        dy_pred = self.length * np.sin(self.angles_pred[frame])
+        arrow_pred = plt.Arrow(self.x_pred[frame], self.y_pred[frame], dx_pred, dy_pred, width=0.1, color='red')
+        self.ax.add_patch(arrow_pred)
         self.arrow1_storage.append(arrow)
-        self.arrow2_storage.append(arrow_ekin)
+        self.arrow2_storage.append(arrow_pred)
         # Create and add new car position
-        new_patches_ekin = self.draw_car(self.x_ekin[frame], self.y_ekin[frame], self.angles_ekin[frame], carID='ekin')
+        new_patches_pred = self.draw_car(self.x_pred[frame], self.y_pred[frame], self.angles_pred[frame], carID='pred')
         new_patches_true = self.draw_car(self.x[frame], self.y[frame], self.angles[frame], carID='true')
 
-        for old_patch, new_patch in zip(self.ekin_patches, new_patches_ekin):
+        for old_patch, new_patch in zip(self.pred_patches, new_patches_pred):
             if isinstance(old_patch, Circle) and isinstance(new_patch, Circle):
                 old_patch.set_center(new_patch.center)
             elif isinstance(old_patch, Polygon) and isinstance(new_patch, Polygon):
@@ -363,9 +362,9 @@ class Plotting:
             text_y = steering_wheel_center_y + self.text_offset_y
             self.steering_angle_text.set_position((text_x, text_y))
         if pit_np.any():
-            self.ax.legend(['left bound', 'right bound', 'pitlane', 'True position', 'Ekin position', speed_text, horizon_text])
+            self.ax.legend(['left bound', 'right bound', 'pitlane', 'True position', 'Pred position', speed_text, horizon_text])
         else:
-            self.ax.legend(['left bound', 'right bound', 'True position', 'Ekin position', speed_text, horizon_text])
+            self.ax.legend(['left bound', 'right bound', 'True position', 'Pred position', speed_text, horizon_text])
         current_steering_angle = self.steering_angle[frame] / 0.0666 / (math.pi/180.0) # Steering  wheel angle data
         self.draw_steering_wheel(self.ax, steering_wheel_center_x, steering_wheel_center_y, self.steering_wheel_radius, current_steering_angle)
         self.steering_angle_text.set_text(f'Steering wheel Angle: {current_steering_angle:.2f}°')
