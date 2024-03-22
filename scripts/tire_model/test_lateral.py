@@ -1,7 +1,6 @@
 import numpy as np
 import time 
 import matplotlib.pyplot as plt
-from MagicFormula import MagicFormula
 from MF_lateral import MF_lateral
 import argparse
 import os 
@@ -37,10 +36,7 @@ tire_F = 'FRONT'
 tire_R = 'REAR'
 usemode = 111
 # Python solver
-if args.model == 'lateral':
-    model = MF_lateral([tire_F, tire_R], data_path)
-elif args.model == 'MF':
-    model = MagicFormula([tire_F, tire_R], data_path, usemode)
+model = MF_lateral([tire_F, tire_R], data_path)
 Fyf    = np.zeros(nPoints)
 Fyf0   = np.zeros(nPoints)
 Fyr    = np.zeros(nPoints)

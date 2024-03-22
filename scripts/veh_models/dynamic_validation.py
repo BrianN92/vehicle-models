@@ -393,11 +393,13 @@ if __name__ == "__main__":
     right_np = np.loadtxt(bounds_path+right_bounds, delimiter=',', dtype=np.float64)
     
     # Vehicle model & params
-    params = vehicle.Vehicle_params()    
+    horizon_fixed = True
+    Whole_track   = True
+    params  = vehicle.Vehicle_params()    
     vehicle = Vehicle(params)
     modelID = 0
-    models = ['dynamic','kinematic']
-    path   = os.path.join(script_dir, '..', 'data', 'example_runs/')
+    models  = ['dynamic','kinematic']
+    path    = os.path.join(script_dir, '..', 'data', 'example_runs/')
     dataset = 'autoverse_tms_purepursuit2'
     vehicle.gen_data(path, dataset, models)
     simulation = Simulation(vehicle, models[modelID])
@@ -405,9 +407,9 @@ if __name__ == "__main__":
     base_step  = 25 
     c1_scaler  = 9
     c2_scaler  = 2
-    simulation.open_sim(multi_step, base_step, c1_scaler, c2_scaler, horizon_fixed=True)
+    simulation.open_sim(multi_step, base_step, c1_scaler, c2_scaler, horizon_fixed)
     vx_start = 55 # start from the point vx >= [] m/s
     # Dynamic plot
-    plotting = Plotting(simulation, vx_start, left_np, right_np, pit_np, Whole_track = False)
+    plotting = Plotting(simulation, vx_start, left_np, right_np, pit_np, Whole_track)
     plotting.animate()
 
